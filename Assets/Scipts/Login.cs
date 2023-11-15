@@ -5,6 +5,9 @@ using TMPro;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.Networking;
+using System.Text;
+using Newtonsoft.Json;
 public class Login : MonoBehaviour
 {
     public TMP_InputField editUser, editPass;
@@ -12,6 +15,7 @@ public class Login : MonoBehaviour
     public Selectable first;
     private EventSystem es;
     public Button btnLogin;
+    public static LoginResponseModel loginResponseModel;
     // Start is called before the first frame update
     void Start()
     {
@@ -44,14 +48,54 @@ public class Login : MonoBehaviour
         var user = editUser.text;
         var pass = editPass.text;
 
+        UserModel userModel = new UserModel(user, pass);
+        StartCoroutine(SignIn(userModel));
+        SignIn(userModel);
         // call API
-        if (user.Equals("luanpc") && pass.Equals("123456"))
+        // if (user.Equals("luanpc") && pass.Equals("123456"))
+        // {
+        //     SceneManager.LoadScene("StartGame");
+        // }
+        // else
+        // {
+        //     txtError.text = "Login failed !";
+        // }
+    }
+
+    IEnumerator SignIn(UserModel userModel)
+
+    {
+        string jsonStringRequest = JsonConvert.SerializeObject(userModel);
+
+        var request = new UnityWebRequest("https://hoccungminh.dinhnt.com/fpt/login", "POST");
+
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonStringRequest);
+
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+
+        request.downloadHandler = new DownloadHandlerBuffer();
+
+        request.SetRequestHeader("Content-Type", "application/json");
+
+        yield return request.SendWebRequest();
+
+        if (request.result != UnityWebRequest.Result.Success)
+
         {
-            SceneManager.LoadScene("StartGame");
+            Debug.Log(request.error);
         }
         else
         {
-            txtError.text = "Login failed !";
+            var jsonString = request.downloadHandler.text.ToString();
+            loginResponseModel = JsonConvert.DeserializeObject<LoginResponseModel>(jsonString);
+            if (loginResponseModel.status == 1)
+            {
+                SceneManager.LoadScene(1);
+            }
+            else
+            {
+                txtError.text = loginResponseModel.notification;
+            }
         }
     }
 }

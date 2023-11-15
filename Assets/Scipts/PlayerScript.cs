@@ -1,7 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
-
+using Newtonsoft.Json;
+using UnityEngine.Networking;
+using System.Text;
 public class PlayerScript : MonoBehaviour
 {
     private Rigidbody2D rb;
@@ -11,11 +14,31 @@ public class PlayerScript : MonoBehaviour
     public GameObject player;
     private bool floor = true;
     public ParticleSystem psBui;
+    public GameObject menu;
+    private bool isPlaying = true;
+    private int countCoin = 0;
+    public TMP_Text txtCoin;
+    public AudioSource soundCoin;
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+
+        //load điểm, vị trí
+        if (Login.loginResponseModel.score >= 0)
+        {
+            countCoin = Login.loginResponseModel.score;
+            txtCoin.text = countCoin + " x";
+        }
+
+        if (Login.loginResponseModel.positionX != "")
+        {
+            var posX = float.Parse(Login.loginResponseModel.positionX);
+            var posY = float.Parse(Login.loginResponseModel.positionY);
+            var posZ = float.Parse(Login.loginResponseModel.positionZ);
+            transform.position = new Vector3(posX, posY, posZ);
+        }
     }
 
     // Update is called once per frame
@@ -31,7 +54,7 @@ public class PlayerScript : MonoBehaviour
         animator.SetBool("isRunning", false);
         Quaternion rotation = psBui.transform.localRotation;
         //move right
-        if (Input.GetKey(KeyCode.RightArrow) && playerX <= 17)
+        if (Input.GetKey(KeyCode.RightArrow) && playerX <= 30)
         {
             rotation.y = 180;
             psBui.transform.localRotation = rotation;
@@ -78,6 +101,16 @@ public class PlayerScript : MonoBehaviour
                 floor = false;
             }
         }
+
+        //GetKey: Nhan giu nut
+        //GetKeyDown: Nhan phim 1 lan
+        //GetKeyUp: Tha phim ra
+
+        //Pause game + show menu
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            pauseMenu();
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D other)
@@ -86,5 +119,79 @@ public class PlayerScript : MonoBehaviour
         {
             floor = true;
         }
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.gameObject.tag == "coin")
+        {
+            soundCoin.Play();
+            countCoin += 10;
+            txtCoin.text = countCoin + " x";
+            Destroy(other.gameObject);
+        }
+    }
+    public void pauseMenu()
+    {
+        if (isPlaying)
+        {
+            menu.SetActive(true);
+            Time.timeScale = 0;
+            isPlaying = false;
+        }
+        else
+        {
+            menu.SetActive(false);
+            Time.timeScale = 1;
+            isPlaying = true;
+        }
+    }
+
+    public void SaveScore()
+    {
+        var user = Login.loginResponseModel.username;
+        ScoreModel score = new ScoreModel(user, countCoin);
+
+        StartCoroutine(SaveScoreAPI(score));
+        SaveScoreAPI(score);
+    }
+
+    // API save score
+    IEnumerator SaveScoreAPI(ScoreModel score)
+
+    {
+        string jsonStringRequest = JsonConvert.SerializeObject(score);
+
+        var request = new UnityWebRequest("https://hoccungminh.dinhnt.com/fpt/save-score", "POST");
+
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonStringRequest);
+
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+
+        request.downloadHandler = new DownloadHandlerBuffer();
+
+        request.SetRequestHeader("Content-Type", "application/json");
+
+        yield return request.SendWebRequest();
+
+        if (request.result != UnityWebRequest.Result.Success)
+
+        {
+            Debug.Log(request.error);
+        }
+        else
+        {
+            var jsonString = request.downloadHandler.text.ToString();
+            ScoreResponseModel scoreResponseModel = JsonConvert.DeserializeObject<ScoreResponseModel>(jsonString);
+            if (scoreResponseModel.status == 1)
+            {
+                pauseMenu();
+            }
+            else
+            {
+                //Thong bao
+            }
+        }
+
     }
 }

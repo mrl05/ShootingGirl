@@ -5,14 +5,22 @@ Test case
 -  Nhân vật không bị ngã ngửa khi nhảy/ va chạm (Freeze trục Z)
 - Move left nhân vật có quay người
 - Có các animation: idle, walk, jump
-- Khi rơi phải mượt, không được rơi cái bộp
+- Khi rơi phải mượt, không được rơi cái bộp (using Rigidbody)
 - Dùng ParticalSystem để hiện bụi dưới chân khi chạy
 
 2/ Di chuyển enemy
 - Xuất hiện vị trí random
 - Khi player đến gần thì quái đuổi theo
 
-3/ Login
+3/ Có nhạc nền
+
+Using api
+
+4/ Login 
 - Check username, password
 - Login error => Display message
 - Login success => Load scene StartGame
+
+5/ Load score + position
+
+6/ Save Score
