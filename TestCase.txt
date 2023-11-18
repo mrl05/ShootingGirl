@@ -14,13 +14,19 @@ Test case
 
 3/ Có nhạc nền
 
-Using api
+==================Using api========================
 
 4/ Login 
 - Check username, password
 - Login error => Display message
 - Login success => Load scene StartGame
 
-5/ Load score + position
+5/ Register
 
-6/ Save Score
+6/Load score + position
+
+7/ Save Score
+
+8/ Send OTP
+
+9/ Reset Password
