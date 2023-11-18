@@ -45,6 +45,7 @@ public class PlayerScript : MonoBehaviour
     void Update()
     {
         Move();
+        ShootBullet();
     }
 
     protected void Move()
@@ -111,8 +112,27 @@ public class PlayerScript : MonoBehaviour
         {
             pauseMenu();
         }
+
+       
     }
 
+    // Shooting bullet
+    protected virtual void ShootBullet()
+    {
+         //Ban dan
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+            var x = transform.position.x + (isRight ? 1f : -1f);
+            var y = transform.position.y - 0.5f;
+            var z = transform.position.z;
+
+            GameObject gameObject = (GameObject)Instantiate(Resources.Load("Prefab/bullet"),
+                        new Vector3(x, y, z),
+                        Quaternion.identity);
+
+            gameObject.GetComponent<BulletScript>().setIsRight(isRight);
+        }
+    } 
     private void OnCollisionEnter2D(Collision2D other)
     {
         if (other.gameObject.tag == "nen_dat")
