@@ -8,6 +8,7 @@ TagManager:
   - left
   - up
   - coin
+  - checkpoint
   layers:
   - Default
   - TransparentFX

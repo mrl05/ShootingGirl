@@ -66,21 +66,14 @@ public class Login : MonoBehaviour
 
     {
         string jsonStringRequest = JsonConvert.SerializeObject(userModel);
-
         var request = new UnityWebRequest("https://hoccungminh.dinhnt.com/fpt/login", "POST");
-
         byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonStringRequest);
-
         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-
         request.downloadHandler = new DownloadHandlerBuffer();
-
         request.SetRequestHeader("Content-Type", "application/json");
-
         yield return request.SendWebRequest();
 
         if (request.result != UnityWebRequest.Result.Success)
-
         {
             Debug.Log(request.error);
         }
@@ -97,5 +90,6 @@ public class Login : MonoBehaviour
                 txtError.text = loginResponseModel.notification;
             }
         }
+        request.Dispose();
     }
 }

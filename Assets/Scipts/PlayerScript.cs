@@ -130,6 +130,11 @@ public class PlayerScript : MonoBehaviour
             txtCoin.text = countCoin + " x";
             Destroy(other.gameObject);
         }
+
+        if (other.gameObject.tag == "checkpoint")
+        {
+            SavePosition();
+        }
     }
     public void pauseMenu()
     {
@@ -182,8 +187,8 @@ public class PlayerScript : MonoBehaviour
         else
         {
             var jsonString = request.downloadHandler.text.ToString();
-            ScoreResponseModel scoreResponseModel = JsonConvert.DeserializeObject<ScoreResponseModel>(jsonString);
-            if (scoreResponseModel.status == 1)
+            ResponseModel responseModel = JsonConvert.DeserializeObject<ResponseModel>(jsonString);
+            if (responseModel.status == 1)
             {
                 pauseMenu();
             }
@@ -192,6 +197,47 @@ public class PlayerScript : MonoBehaviour
                 //Thong bao
             }
         }
+        request.Dispose();
+    }
 
+    public void SavePosition()
+    {
+        var user = Login.loginResponseModel.username;
+        var x = transform.position.x;
+        var y = transform.position.y;
+        var z = transform.position.z;
+
+        PositionModel positionModel = new PositionModel(user, x.ToString(), y.ToString(), z.ToString());
+        StartCoroutine(SavePositionAPI(positionModel));
+        SavePositionAPI(positionModel);
+    }
+    // API luu position
+    IEnumerator SavePositionAPI(PositionModel psModel)
+    {
+        string jsonStringRequest = JsonConvert.SerializeObject(psModel);
+        var request = new UnityWebRequest("https://hoccungminh.dinhnt.com/fpt/save-position", "POST");
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonStringRequest);
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        yield return request.SendWebRequest();
+        if (request.result != UnityWebRequest.Result.Success)
+        {
+            Debug.Log(request.error);
+        }
+        else
+        {
+            var jsonString = request.downloadHandler.text.ToString();
+            ResponseModel responseModel = JsonConvert.DeserializeObject<ResponseModel>(jsonString);
+            if (responseModel.status == 1)
+            {
+                Debug.Log("Done");
+            }
+            else
+            {
+                //goi lai API luu position
+            }
+        }
+        request.Dispose();
     }
 }
